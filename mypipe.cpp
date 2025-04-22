@@ -8,7 +8,8 @@
 
 
 mypipe::mypipe() {
-    if(pipe(fd.data()) < 0) {
+    auto status{pipe(fd.data())};
+    if(status < 0) {
         std::cerr << "pipe failed" << "\n";
         exit(1); 
     }
@@ -29,6 +30,7 @@ void mypipe::redirect() {
 }
 
 std::string mypipe::read() {
+    ::close(fd[1]); 
     std::array<char, 256> buf; 
     std::string output; 
     size_t bytes; 

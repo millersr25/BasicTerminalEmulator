@@ -14,9 +14,19 @@ int run_cmd(std::vector<char *> argv) {
     auto id{fork()};
 
     if(id < 0) {
-        std::cerr << "Fork failed" << "\n"; 
-        return 1; 
+        perror("fork failed"); 
+        return -1; 
     } 
+
+    // child
+    else if(id == 0) {
+        mp.redirect(); 
+        std::cout << "\n[child] PID = " << getpid();
+        std::cout << " - execvp\n" << std::flush; 
+        execvp(argv[0], argv.data()); 
+        perror("exec failed");
+        exit(127); 
+    }
 
     // parent
     if(id != 0) {
@@ -24,18 +34,7 @@ int run_cmd(std::vector<char *> argv) {
         wait(&status); 
         std::string output = mp.read(); 
         std::cout << output; 
-        std::cout << "child terminated: ";
-        std::cout << WEXITSTATUS(status) << "\n";
         return status;  
-    }
-
-    // child
-    else if(id == 0) {
-        mp.redirect(); 
-        execvp(argv[0], const_cast<char* const*>(argv.data())); 
-        
-        std::cerr << "execution failed" << "\n"; 
-        exit(1); 
     }
 
     return 1; 
